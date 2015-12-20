@@ -3,7 +3,10 @@ title: "PA1_template"
 author: "Ross Voorhees"
 date: "Saturday, December 19, 2015"
 output: html_document
+keep_md: yes
 ---
+
+
 
 
 
@@ -62,6 +65,10 @@ Activities$date <- as.Date(Activities$date, format = "%Y-%m-%d")
 
 
 
+```r
+summarise(group_by(Activities),TotalSteps=sum(steps, na.rm=TRUE))
+```
+
 ```
 ## Source: local data frame [1 x 1]
 ## 
@@ -74,6 +81,11 @@ Activities$date <- as.Date(Activities$date, format = "%Y-%m-%d")
 ###Make a histogram of the total number of steps taken each day
 
 
+```r
+astep <- summarise(group_by(Activities, date),TotalSteps=sum(steps, na.rm=TRUE))
+ggplot(astep, aes(TotalSteps)) + geom_histogram(fill="Blue")+ggtitle("Steps Taken Per Day")+ylab("Number of Days")
+```
+
 ```
 ## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
 ```
@@ -82,6 +94,10 @@ Activities$date <- as.Date(Activities$date, format = "%Y-%m-%d")
     
 ###Calculate and report the mean and median of the total number of steps taken per day
 
+
+```r
+summarise(astep,mean=mean(TotalSteps), median=median(TotalSteps) )
+```
 
 ```
 ## Source: local data frame [1 x 2]
@@ -92,6 +108,12 @@ Activities$date <- as.Date(Activities$date, format = "%Y-%m-%d")
 
 
 ###What is the average daily activity pattern?
+
+
+```r
+istep <- summarise(group_by(Activities,interval), avgsteps=mean(steps))
+plot(istep$interval, istep$avgsteps, type="l", xlab="5 minute Interval", ylab="Avg Steps")
+```
 
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
 
@@ -120,6 +142,10 @@ Activities2 <- read.csv(file="activity.csv",header=TRUE, sep=,)
 ###Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
 
+```r
+sum(is.na(Activities2$steps))
+```
+
 ```
 ## [1] 2304
 ```
@@ -143,6 +169,12 @@ f <- sqldf("Select a.date, a.interval, CASE WHEN a.steps is null THEN m.median E
 
 ###Make a histogram of the total number of steps taken each day
 
+
+```r
+bstep <- summarise(group_by(f, date),TotalSteps=sum(steps, na.rm=TRUE))
+
+ggplot(bstep, aes(TotalSteps)) + geom_histogram(fill="Blue")+ggtitle("Steps Taken Per Day")+ylab("Number of Days")
+```
 
 ```
 ## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
@@ -195,6 +227,13 @@ f$weekendflag[f$weekendflag == "FALSE"] <- "Weekday"
 
     Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and 
     the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+
+
+```r
+w <- summarise(group_by(f,interval,weekendflag), NumSteps=mean(steps))
+
+ggplot(w, aes(interval,NumSteps)) + geom_line(fill="Blue")+ylab("Number of Steps")+facet_grid(weekendflag ~ .)
+```
 
 ![plot of chunk unnamed-chunk-21](figure/unnamed-chunk-21-1.png) 
 
